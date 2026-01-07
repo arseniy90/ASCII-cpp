@@ -1,7 +1,66 @@
 #include "DemoRunner.hpp"
 #include "PlotterFactory.hpp"
+#include <array>
+#include <chrono>
 #include <fstream>
 #include <iostream>
+#include <string_view>
+
+namespace fs = std::filesystem;
+
+namespace
+{
+
+bool DoFileExist(const fs::path& filepath) {
+    return fs::exists(filepath) && fs::is_regular_file(filepath);
+}
+
+// Сравнение двух файлов побайтово
+bool FilesAreIdentical(const fs::path& lhs, const fs::path& rhs)
+{
+    if (!DoFileExist(lhs) || !DoFileExist(rhs))
+    {
+        return false;
+    }
+
+    if (fs::file_size(lhs) != fs::file_size(rhs))
+    {
+        return false;
+    }
+
+    std::ifstream lhs_fs(lhs, std::ios::binary);
+    std::ifstream rhs_fs(rhs, std::ios::binary);
+
+    if (!lhs_fs || !rhs_fs)
+    {
+        return false;
+    }
+
+    return std::equal(
+        std::istreambuf_iterator<char>(lhs_fs.rdbuf()),
+        std::istreambuf_iterator<char>(),
+        std::istreambuf_iterator<char>(rhs_fs.rdbuf())
+    );
+}
+
+constexpr std::array<std::string_view, 11> demo_out_files =
+{
+    "advanced_shapes.txt",
+    "basic_plotter.txt",
+    "filters_box_blur.txt",
+    "filters_gaussian_blur.txt",
+    "filters_original.txt",
+    "from_config.txt",
+    "grayscale_basic.txt",
+    "grayscale_advanced.txt",
+    "palette_ascii.txt",
+    "palette_from_config.txt",
+    "palette_simple.txt",
+};
+
+const fs::path demo_path = "Demo";
+
+} // anonymous namespace
 
 namespace plotter
 {
@@ -9,6 +68,17 @@ namespace plotter
 void DemoRunner::RunAllDemos()
 {
     std::cout << "Запускаем все демо\n\n";
+
+    if (fs::exists(demo_path))
+    {
+        for (const fs::directory_entry& entry : fs::directory_iterator(demo_path))
+        {
+            if (entry.is_regular_file() && entry.path().extension() == ".txt")
+            {
+                fs::remove(entry.path());
+            }
+        }
+    }
 
     EnsureDemoDirectory();
     DemoBasicPlotter();
@@ -21,6 +91,8 @@ void DemoRunner::RunAllDemos()
     CompareFillAlgorithms();
 
     std::cout << "\nВсе демо запущены! Проверь папку Demo, чтобы посмотреть результаты\n";
+
+    std::cout << (AreDemoResults() ? "Результаты корректны!\n" : "Результаты НЕ корректны!\n");
 }
 
 void DemoRunner::EnsureDemoDirectory()
@@ -35,6 +107,11 @@ void DemoRunner::EnsureDemoDirectory()
 std::filesystem::path DemoRunner::GetDemoPath(const std::string& filename)
 {
     return std::filesystem::path("Demo") / filename;
+}
+
+std::filesystem::path DemoRunner::GetDemoReferencePath(const std::string& filename)
+{
+    return std::filesystem::path("DemoPrecode") / filename;
 }
 
 void DemoRunner::DemoBasicPlotter()
@@ -239,10 +316,17 @@ void DemoRunner::CompareFillAlgorithms()
     ss << "\nInitial canvas: \n";
     plotter1.Render(ss);
 
+    namespace chrono = std::chrono;
     // Измерьте время выполнения заливки двумя методами
+    auto start_time = chrono::steady_clock::now();
     plotter1.FloodFill(10, 10, 'F');
+    auto end_time = chrono::steady_clock::now();
+    auto floodfill_time = chrono::duration_cast<chrono::microseconds>(end_time - start_time).count();
 
+    start_time = chrono::steady_clock::now();
     plotter2.ScanlineFill(10, 10, 'S');
+    end_time = chrono::steady_clock::now();
+    auto scanline_time = chrono::duration_cast<chrono::microseconds>(end_time - start_time).count();
 
     ss << "FloodFill time: " << floodfill_time << " microseconds\n";
     ss << "ScanlineFill time: " << scanline_time << " microseconds\n";
@@ -257,6 +341,19 @@ void DemoRunner::CompareFillAlgorithms()
     std::ofstream output(filename, std::ios::out | std::ios::trunc);
     output << ss.str();
     std::cout << "\tСохраняем результат в: Demo/scanline_benchmark.txt";
+}
+
+bool DemoRunner::AreDemoResults() {
+    bool areAllEqual = true;
+    for (const auto file_name_view : demo_out_files) {
+        const auto file_name = std::string(file_name_view);
+        auto lhs = GetDemoReferencePath(std::string(file_name));
+        auto rhs = GetDemoPath(file_name);
+        if (!FilesAreIdentical(lhs, rhs)) {
+            std::cerr << "Results are not equal for: " << file_name_view << std::endl;
+            areAllEqual = false;
+        }
+    }    return areAllEqual;
 }
 
 } // namespace plotter

@@ -20,6 +20,14 @@ Plotter::Plotter(std::unique_ptr<Canvas> canvas)
 Plotter::Plotter(int width, int height, char background_char)
     : canvas_(std::make_unique<Canvas>(width, height, background_char))
 {
+    // При невалидных данных конструктор Canvas бросит исключение 
+}
+
+Plotter::ScanlineSegment::ScanlineSegment(int y, int x_start, int x_end)
+    : y(y)
+    , x_start(x_start)
+    , x_end(x_end)
+{
 }
 
 void Plotter::DrawLine(const int x1, const int y1, const int x2, const int y2, const char brush)

@@ -12,6 +12,9 @@ public:
     explicit Plotter(std::unique_ptr<Canvas> canvas);
     Plotter(int width, int height, char background_char = ' ');
 
+    // Нужен виртуальный деструктор для вызова в производном классе
+    virtual ~Plotter() = default;
+
     void DrawLine(int x1, int y1, int x2, int y2, char brush);
     void DrawRectangle(int x1, int y1, int x2, int y2, char brush, bool fill = false);
     void DrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, char brush, bool fill = false);
@@ -46,6 +49,8 @@ private:
         int y;
         int x_start;
         int x_end;
+        // В C++17 emplace с args не работает без конструктора
+        ScanlineSegment(int y, int x_start, int x_end);
     };
 };
 

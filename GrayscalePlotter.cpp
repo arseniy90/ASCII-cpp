@@ -6,6 +6,34 @@
 namespace plotter
 {
 
+GrayscalePlotter::GrayscalePlotter(std::unique_ptr<Canvas> canvas,
+    const std::vector<char>& palette /*= DefaultPalette()*/) : Plotter(std::move(canvas)), palette_(palette)
+{
+    // При невалидных данных конструктор Plotter бросит исключение
+    if (palette_.empty())
+    {
+        palette_ = DefaultPalette();
+    }
+}
+
+GrayscalePlotter::GrayscalePlotter(int width, int height, char background_char,
+    const std::vector<char>& palette /*= DefaultPalette()*/) : Plotter(width, height, background_char), palette_(palette)
+{
+    // При невалидных данных конструктор Plotter бросит исключение
+    if (palette_.empty())
+    {
+        palette_ = DefaultPalette();
+    }
+}
+
+char GrayscalePlotter::BrightnessToChar(double brightness) const {
+    brightness = std::clamp(brightness, 0.0, 1.0);
+
+    double scaled_index = brightness * (palette_.size() - 1);
+    const size_t index = static_cast<size_t>(std::floor(scaled_index));
+    return palette_[index];
+}
+
 std::vector<char> GrayscalePlotter::DefaultPalette()
 {
     return { ' ', '.', ':', '-', '=', '+', '*', '#', '%', '@' };
