@@ -4,6 +4,9 @@
 #include <memory>
 #include <vector>
 
+// Для тестирования BrightnessToChar
+void TestGrayscalePlotter();
+
 namespace plotter
 {
 
@@ -47,8 +50,9 @@ public:
     [[nodiscard]] size_t GetPaletteSize() const noexcept { return palette_.size(); }
 
 private:
+    // Для тестирования BrightnessToChar
+    friend void ::TestGrayscalePlotter();
     std::vector<char> palette_;
-
     char BrightnessToChar(double brightness) const;
 
     double GetPixelBrightness(int x, int y) const;

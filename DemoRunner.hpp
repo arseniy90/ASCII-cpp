@@ -9,7 +9,7 @@ class DemoRunner
 public:
     static void RunAllDemos();
     // Сравнение результатов тестов (кроме CompareFillAlgorithms)
-    static bool AreDemoResults();
+    static bool AreDemoResultsCorrect();
     static void DemoBasicPlotter();
     static void DemoGrayscalePlotter();
     static void DemoAdvancedGrayscalePlotter();

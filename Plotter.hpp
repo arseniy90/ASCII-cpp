@@ -50,7 +50,7 @@ private:
         int x_start;
         int x_end;
         // В C++17 emplace с args не работает без конструктора
-        ScanlineSegment(int y, int x_start, int x_end);
+        // ScanlineSegment(int y, int x_start, int x_end);
     };
 };
 

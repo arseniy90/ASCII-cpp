@@ -92,7 +92,7 @@ void DemoRunner::RunAllDemos()
 
     std::cout << "\nВсе демо запущены! Проверь папку Demo, чтобы посмотреть результаты\n";
 
-    std::cout << (AreDemoResults() ? "Результаты корректны!\n" : "Результаты НЕ корректны!\n");
+    std::cout << (AreDemoResultsCorrect() ? "Результаты корректны!\n" : "Результаты НЕ корректны!\n");
 }
 
 void DemoRunner::EnsureDemoDirectory()
@@ -343,7 +343,7 @@ void DemoRunner::CompareFillAlgorithms()
     std::cout << "\tСохраняем результат в: Demo/scanline_benchmark.txt";
 }
 
-bool DemoRunner::AreDemoResults() {
+bool DemoRunner::AreDemoResultsCorrect() {
     bool areAllEqual = true;
     for (const auto file_name_view : demo_out_files) {
         const auto file_name = std::string(file_name_view);

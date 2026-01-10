@@ -2,7 +2,6 @@
 #include "json.h"
 
 #include <fstream>
-#include <sstream>
 
 namespace
 {
@@ -19,8 +18,8 @@ constexpr const char int_type[] = "int";
 constexpr const char basic_plotter_type[] = "basic";
 constexpr const char grayscale_plotter_type[] = "grayscale";
 
-constexpr int default_width = 0;
-constexpr int default_height = 0;
+constexpr int default_width = 48;
+constexpr int default_height = 24;
 constexpr char default_background_char = ' ';
 constexpr const char default_plotter_type[] = "basic";
 
@@ -58,8 +57,8 @@ using namespace std::literals;
 // Реализуйте методы класса Config
 PlotterConfig Config::LoadFromFile(const std::string& filename)
 {
-    std::ifstream out(filename);
-    if (!out)
+    std::ifstream in(filename);
+    if (!in)
     {
         throw std::runtime_error("Failed to open file '" + filename + "'");
     }
@@ -67,7 +66,7 @@ PlotterConfig Config::LoadFromFile(const std::string& filename)
     PlotterConfig config;
     try
     {
-        config = Config::LoadFromString(out);
+        config = Config::LoadFromString(in);
     }
     catch (const ConfigParserError& e)
     {
@@ -140,15 +139,15 @@ std::vector<char> Config::ParsePalette(const std::string& palette_str)
 bool Config::ValidateConfig(const PlotterConfig& config)
 {
     bool ok = true;
-    if (config.width < 0)
+    if (config.width < 1)
     {
-        std::cerr << "width can't be negative, got "s << config.width << std::endl;
+        std::cerr << "width can't be less than 1, got "s << config.width << std::endl;
         ok = false;
     }
 
-    if (config.height < 0)
+    if (config.height < 1)
     {
-        std::cerr << "height can't be negative, got "s << config.height << std::endl;
+        std::cerr << "height can't be less than 1, got "s << config.height << std::endl;
         ok = false;
     }
 

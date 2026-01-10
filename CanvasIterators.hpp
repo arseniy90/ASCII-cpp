@@ -26,6 +26,14 @@ public:
         {
             throw std::invalid_argument("Canvas cannot be null");
         }
+        if (row_ < 0 || row_ > canvas_->Height())
+        {
+            throw std::invalid_argument("Row can't be negative or more than height");
+        }
+        if (col_ < 0 || col_ > canvas_->Width())
+        {
+            throw std::invalid_argument("Col can't be negative or more than width");
+        }
     }
 
     reference operator*() const noexcept
@@ -81,59 +89,46 @@ public:
         return *this;
     }
 
-    RowIterator operator+(difference_type n) noexcept
-    {
-         return *this += n;
+    RowIterator operator+(difference_type n) const noexcept {
+        RowIterator tmp = *this;
+        tmp += n;
+        return tmp;
     }
 
-    RowIterator operator-(difference_type n) noexcept
-    {
-         return *this -= n;
+    RowIterator operator-(difference_type n) const noexcept {
+        RowIterator tmp = *this;
+        tmp -= n;
+        return tmp;
     }
 
-    difference_type operator-(const RowIterator& other) noexcept
+    difference_type operator-(const RowIterator& other) const noexcept
     {
         // Проверка консистентности
         assert(canvas_ == other.canvas_ && row_ == other.row_);
-        return col_ - other.col_;
+        return static_cast<difference_type>(col_) - static_cast<difference_type>(other.col_);
     }
 
-    friend bool operator==(const RowIterator& lhs, const RowIterator& rhs) noexcept
-    {
-        return lhs.canvas_ == rhs.canvas_ && lhs.row_ == rhs.row_ && lhs.col_ == rhs.col_;
-    }
-
-    friend bool operator<(const RowIterator& lhs, const RowIterator& rhs) noexcept
-    {
+    bool operator==(const RowIterator& other) const noexcept {
         // Проверка консистентности
-        assert(lhs.canvas_ == rhs.canvas_ && lhs.row_ == rhs.row_);
-        return lhs.col_ < rhs.col_;
+        assert(canvas_ == other.canvas_ && row_ == other.row_);
+        return col_ == other.col_;
+    }
+
+    auto operator<=>(const RowIterator& other) const noexcept {
+        // Проверка консистентности
+        assert(canvas_ == other.canvas_ && row_ == other.row_);
+        return col_ <=> other.col_;
     }
 
 private:
-    Canvas* canvas_;
-    int row_;
-    int col_;
+    Canvas* canvas_ = nullptr;
+    int row_ = 0;
+    int col_ = 0;
 };
 
-inline bool operator!=(const Canvas::RowIterator& lhs, const Canvas::RowIterator& rhs) noexcept
-{
-    return !(lhs == rhs);
-}
 
-inline bool operator<=(const Canvas::RowIterator& lhs, const Canvas::RowIterator& rhs) noexcept
-{
-    return !(rhs < lhs);
-}
-
-inline bool operator>(const Canvas::RowIterator& lhs, const Canvas::RowIterator& rhs) noexcept
-{
-    return rhs < lhs;
-}
-
-inline bool operator>=(const Canvas::RowIterator& lhs, const Canvas::RowIterator& rhs) noexcept
-{
-    return !(lhs < rhs);
+inline Canvas::RowIterator operator+(Canvas::RowIterator::difference_type n, Canvas::RowIterator it) noexcept {
+    return it + n;
 }
 
 class Canvas::ColumnIterator
@@ -154,6 +149,14 @@ public:
         if (!canvas_)
         {
             throw std::invalid_argument("Canvas cannot be null");
+        }
+        if (row_ < 0 || row_ > canvas_->Height())
+        {
+            throw std::invalid_argument("Row can't be negative or more than height");
+        }
+        if (col_ < 0 || col_ > canvas_->Width())
+        {
+            throw std::invalid_argument("Col can't be negative or more than width");
         }
     }
 
@@ -210,59 +213,47 @@ public:
         return *this;
     }
 
-    ColumnIterator operator+(difference_type n) noexcept
+    ColumnIterator operator+(difference_type n) const noexcept
     {
-         return *this += n;
+        ColumnIterator tmp = *this;
+        tmp += n;
+        return tmp;
     }
 
-    ColumnIterator operator-(difference_type n) noexcept
+    ColumnIterator operator-(difference_type n) const noexcept
     {
-         return *this -= n;
+        ColumnIterator tmp = *this;
+        tmp -= n;
+        return tmp;
     }
 
-    difference_type operator-(const ColumnIterator& other) noexcept
+    difference_type operator-(const ColumnIterator& other) const noexcept
     {
         // Проверка консистентности
         assert(canvas_ == other.canvas_ && col_ == other.col_);
-        return row_ - other.row_;
+        return static_cast<difference_type>(row_) - static_cast<difference_type>(other.row_);
     }
 
-    friend bool operator==(const ColumnIterator& lhs, const ColumnIterator& rhs) noexcept
-    {
-        return lhs.canvas_ == rhs.canvas_ && lhs.row_ == rhs.row_ && lhs.col_ == rhs.col_;
-    }
-
-    friend bool operator<(const ColumnIterator& lhs, const ColumnIterator& rhs) noexcept
-    {
+    bool operator==(const ColumnIterator& other) const noexcept {
         // Проверка консистентности
-        assert(lhs.canvas_ == rhs.canvas_ && lhs.col_ == rhs.col_);
-        return lhs.row_ < rhs.row_;
+        assert(canvas_ == other.canvas_ && col_ == other.col_);
+        return row_ == other.row_;
+    }
+
+    auto operator<=>(const ColumnIterator& other) const noexcept {
+        // Проверка консистентности
+        assert(canvas_ == other.canvas_ && col_ == other.col_);
+        return row_ <=> other.row_;
     }
 
 private:
-    Canvas* canvas_;
-    int col_;
-    int row_;
+    Canvas* canvas_ = nullptr;
+    int col_ = 0;
+    int row_ = 0;
 };
 
-inline bool operator!=(const Canvas::ColumnIterator& lhs, const Canvas::ColumnIterator& rhs) noexcept
-{
-    return !(lhs == rhs);
-}
-
-inline bool operator<=(const Canvas::ColumnIterator& lhs, const Canvas::ColumnIterator& rhs) noexcept
-{
-    return !(rhs < lhs);
-}
-
-inline bool operator>(const Canvas::ColumnIterator& lhs, const Canvas::ColumnIterator& rhs) noexcept
-{
-    return rhs < lhs;
-}
-
-inline bool operator>=(const Canvas::ColumnIterator& lhs, const Canvas::ColumnIterator& rhs) noexcept
-{
-    return !(lhs < rhs);
+inline Canvas::ColumnIterator operator+(Canvas::ColumnIterator::difference_type n, Canvas::ColumnIterator it) noexcept {
+    return it + n;
 }
 
 class Canvas::PixelIterator
@@ -281,6 +272,10 @@ public:
         if (!canvas_)
         {
             throw std::invalid_argument("Canvas cannot be null");
+        }
+        if (pos > static_cast<size_t>(canvas_->Size()))
+        {
+            throw std::invalid_argument("Pos can't be negative or more than size");
         }
     }
 
@@ -337,31 +332,37 @@ public:
         return *this;
     }
 
-    PixelIterator operator+(difference_type n) noexcept
+    PixelIterator operator+(difference_type n) const noexcept
     {
-        return *this += n;
+        PixelIterator tmp = *this;
+        tmp += n;
+        return tmp;
     }
 
-    PixelIterator operator-(difference_type n) noexcept
+    PixelIterator operator-(difference_type n) const noexcept
     {
-        return *this -= n;
+        PixelIterator tmp = *this;
+        tmp -= n;
+        return tmp;
     }
 
-    difference_type operator-(const PixelIterator& other) noexcept
+    difference_type operator-(const PixelIterator& other) const noexcept
     {
         // Проверка консистентности
         assert(canvas_ == other.canvas_);
-        return pos_ - other.pos_;
+        return static_cast<difference_type>(pos_) - static_cast<difference_type>(other.pos_);
     }
 
-    bool operator==(const PixelIterator& other) const noexcept
-    {
-        return canvas_ == other.canvas_ && pos_ == other.pos_;
+    bool operator==(const PixelIterator& other) const noexcept {
+        // Проверка консистентности
+        assert(canvas_ == other.canvas_);
+        return pos_ == other.pos_;
     }
 
-    bool operator<(const PixelIterator& other) const noexcept
-    {
-        return pos_ < other.pos_;
+    auto operator<=>(const PixelIterator& other) const noexcept {
+        // Проверка консистентности
+        assert(canvas_ == other.canvas_);
+        return pos_ <=> other.pos_;
     }
 
 private:
@@ -369,24 +370,8 @@ private:
     size_t pos_;
 };
 
-inline bool operator!=(const Canvas::PixelIterator& lhs, const Canvas::PixelIterator& rhs) noexcept
-{
-    return !(lhs == rhs);
-}
-
-inline bool operator<=(const Canvas::PixelIterator& lhs, const Canvas::PixelIterator& rhs) noexcept
-{
-    return !(rhs < lhs);
-}
-
-inline bool operator>(const Canvas::PixelIterator& lhs, const Canvas::PixelIterator& rhs) noexcept
-{
-    return rhs < lhs;
-}
-
-inline bool operator>=(const Canvas::PixelIterator& lhs, const Canvas::PixelIterator& rhs) noexcept
-{
-    return !(lhs < rhs);
+inline Canvas::PixelIterator operator+(Canvas::PixelIterator::difference_type n, Canvas::PixelIterator it) noexcept {
+    return it + n;
 }
 
 } // namespace plotter

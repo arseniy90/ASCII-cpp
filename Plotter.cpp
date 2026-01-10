@@ -23,12 +23,13 @@ Plotter::Plotter(int width, int height, char background_char)
     // При невалидных данных конструктор Canvas бросит исключение 
 }
 
-Plotter::ScanlineSegment::ScanlineSegment(int y, int x_start, int x_end)
-    : y(y)
-    , x_start(x_start)
-    , x_end(x_end)
-{
-}
+// Перешел на C++ 20
+// Plotter::ScanlineSegment::ScanlineSegment(int y, int x_start, int x_end)
+//     : y(y)
+//     , x_start(x_start)
+//     , x_end(x_end)
+// {
+// }
 
 void Plotter::DrawLine(const int x1, const int y1, const int x2, const int y2, const char brush)
 {

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <limits>
 #include <stdexcept>
+#include <utility>
 
 namespace plotter
 {
@@ -18,9 +19,9 @@ Canvas::Canvas(int width, int height, char background /*= DEFAULT_BACKGROUND */)
     , background_(background)
 {
 
-    if (width_ < 0 || height_ < 0)
+    if (width_ < 1 || height_ < 1)
     {
-        throw std::invalid_argument("Width and height can't be negative");
+        throw std::invalid_argument("Width and height can't be less than 1");
     }
 
     if (background_ == '\0')
@@ -29,7 +30,7 @@ Canvas::Canvas(int width, int height, char background /*= DEFAULT_BACKGROUND */)
     }
 
     // Проверка переполнения Size
-    if (width_ != 0 && std::numeric_limits<int>::max() / width < height)
+    if (std::numeric_limits<int>::max() / width < height)
     {
         throw std::invalid_argument("Width and height are too big.");
     }
@@ -143,13 +144,14 @@ void Canvas::FillRegion(int x1, int y1, int x2, int y2, char fill_char) {
     int top    = std::max(0, y1);
     int bottom = std::min(height_ - 1, y2);
 
-    for (int i = top; i < height_ && i <= bottom; ++i)
-    {
-        for (int j = left; j < width_ && j <= right; ++j)
-        {
-            const size_t idx = GetPixelIndex(j, i);
-            symbols_[idx] = fill_char;
-        }
+    if (left > right || top > bottom) {
+        return;
+    }
+
+    for (int y = top; y <= bottom; ++y) {
+        auto it_row_start = RowBegin(y) + left;
+        auto it_row_end = RowBegin(y) + (right + 1);
+        std::fill(it_row_start, it_row_end, fill_char);
     }
 }
 
@@ -160,15 +162,17 @@ bool Canvas::InBounds(int x, int y) const noexcept
 
 void Canvas::Render(std::ostream& os /* = std::cout */) const
 {
-    for (int i = 0; i < height_; ++i)
+    if (symbols_.empty())
     {
-        for (int j = 0; j < width_; ++j)
-        {
-            const size_t idx = GetPixelIndex(j, i);
-            os << symbols_[idx];
-        }
+        return;
+    }
+
+    for (int y = 0; y < height_; ++y) {
+        const char* row_start = &symbols_[y * width_];
+        os.write(row_start, width_);
         os << '\n';
     }
+
     os.flush();
 }
 
@@ -179,14 +183,16 @@ void Canvas::SaveToFile(const fs::path& filepath) const
         throw std::runtime_error("Filepath is empty");
     }
 
-    const auto fullpath = fs::absolute(filepath);
-    const auto parent_path = fullpath.parent_path();
-    fs::create_directories(parent_path);
-    std::ofstream out(fullpath);
+    const auto absolute_path = fs::absolute(filepath);
+    if (absolute_path.has_parent_path())
+    {
+        fs::create_directories(absolute_path.parent_path());
+    }
 
+    std::ofstream out(absolute_path);
     if (!out)
     {
-        throw std::runtime_error("Failed to create file '" + fullpath.string() + "'\n");
+        throw std::runtime_error("Failed to create file '" + absolute_path.string() + "'\n");
     }
 
     PrintHeader(out);
@@ -211,12 +217,12 @@ Canvas::RowIterator Canvas::RowEnd(int row)
 
 Canvas::ColumnIterator Canvas::ColBegin(int col)
 {
-    return ColumnIterator(this, 0, col);
+    return ColumnIterator(this, col, 0);
 }
 
 Canvas::ColumnIterator Canvas::ColEnd(int col)
 {
-    return ColumnIterator(this, height_, col);
+    return ColumnIterator(this, col, height_);
 }
 
 Canvas::PixelIterator Canvas::begin()
