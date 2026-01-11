@@ -1,9 +1,19 @@
 #include "Plotter.hpp"
 #include "CanvasIterators.hpp"
 #include <algorithm>
+#include <stdexcept>
 #include <cmath>
 #include <queue>
 #include <stack>
+
+namespace
+{
+    constexpr int CIRCLE_RADIUS_SCALE = 2;
+    constexpr int INITIAL_OFFSET = 3;
+    constexpr int STEP_SCALE = 4;
+    constexpr int EAST_INCREMENT = 6;
+    constexpr int SOUTH_EAST_INCREMENT = 10;
+} // anonymous namespace
 
 namespace plotter
 {
@@ -99,7 +109,9 @@ void Plotter::FloodFill(int x, int y, const char fill_brush)
 
     const char target_brush = canvas_->at(x, y);
     if (target_brush == fill_brush)
+    {
         return;
+    }
 
     std::queue<std::pair<int, int>> pixels;
     pixels.emplace(x, y);
@@ -123,14 +135,14 @@ void Plotter::FloodFill(int x, int y, const char fill_brush)
     }
 }
 
-std::map<char, int> Plotter::ColorHistogram() const
+std::unordered_map<char, int> Plotter::ColorHistogram() const
 {
     return ColorHistogram(0, 0, canvas_->Width() - 1, canvas_->Height() - 1);
 }
 
-std::map<char, int> Plotter::ColorHistogram(const int x1, const int y1, const int x2, const int y2) const
+std::unordered_map<char, int> Plotter::ColorHistogram(const int x1, const int y1, const int x2, const int y2) const
 {
-    std::map<char, int> histogram;
+    std::unordered_map<char, int> histogram;
 
     for (int y = y1; y <= y2; ++y)
     {
@@ -147,7 +159,7 @@ std::map<char, int> Plotter::ColorHistogram(const int x1, const int y1, const in
     return histogram;
 }
 
-std::pair<char, char> Plotter::MinMaxColors(const std::map<char, int>& color_weights)
+ColorExtrema Plotter::GetMinMaxColors(const std::unordered_map<char, int>& color_weights)
 {
     if (color_weights.empty())
     {
@@ -253,26 +265,42 @@ void Plotter::DrawCircleBresenham(const int center_x, const int center_y, const 
     auto draw_circle_points = [&](const int cx, const int cy, const int x, const int y)
     {
         if (canvas_->InBounds(cx + x, cy + y))
+        {
             (*canvas_)(cx + x, cy + y) = brush;
+        }
         if (canvas_->InBounds(cx - x, cy + y))
+        {
             (*canvas_)(cx - x, cy + y) = brush;
+        }
         if (canvas_->InBounds(cx + x, cy - y))
+        {
             (*canvas_)(cx + x, cy - y) = brush;
+        }
         if (canvas_->InBounds(cx - x, cy - y))
+        {
             (*canvas_)(cx - x, cy - y) = brush;
+        }
         if (canvas_->InBounds(cx + y, cy + x))
+        {
             (*canvas_)(cx + y, cy + x) = brush;
+        }
         if (canvas_->InBounds(cx - y, cy + x))
+        {
             (*canvas_)(cx - y, cy + x) = brush;
+        }
         if (canvas_->InBounds(cx + y, cy - x))
+        {
             (*canvas_)(cx + y, cy - x) = brush;
+        }
         if (canvas_->InBounds(cx - y, cy - x))
+        {
             (*canvas_)(cx - y, cy - x) = brush;
+        }
     };
 
     int x = 0;
     int y = radius;
-    int d = 3 - 2 * radius;
+    int d = INITIAL_OFFSET - CIRCLE_RADIUS_SCALE * radius;
 
     draw_circle_points(center_x, center_y, x, y);
 
@@ -282,11 +310,11 @@ void Plotter::DrawCircleBresenham(const int center_x, const int center_y, const 
         if (d > 0)
         {
             --y;
-            d = d + 4 * (x - y) + 10;
+            d = d + STEP_SCALE * (x - y) + SOUTH_EAST_INCREMENT;
         }
         else
         {
-            d = d + 4 * x + 6;
+            d = d + STEP_SCALE * x + EAST_INCREMENT;
         }
         draw_circle_points(center_x, center_y, x, y);
     }

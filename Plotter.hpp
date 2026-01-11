@@ -1,10 +1,16 @@
 #pragma once
 #include "Canvas.hpp"
-#include <map>
 #include <memory>
+#include <unordered_map>
 
 namespace plotter
 {
+
+struct ColorExtrema
+{
+    char min_color;
+    char max_color;
+};
 
 class Plotter
 {
@@ -23,9 +29,10 @@ public:
     void FloodFill(int x, int y, char fill_brush);
     void ScanlineFill(int x, int y, char fill_brush);
 
-    [[nodiscard]] std::map<char, int> ColorHistogram() const;
-    [[nodiscard]] std::map<char, int> ColorHistogram(int x1, int y1, int x2, int y2) const;
-    [[nodiscard]] static std::pair<char, char> MinMaxColors(const std::map<char, int>& color_weights);
+    [[nodiscard]] std::unordered_map<char, int> ColorHistogram() const;
+    [[nodiscard]] std::unordered_map<char, int> ColorHistogram(int x1, int y1, int x2, int y2) const;
+    // Заменил на структуру также как в GrayscalePlotter
+    [[nodiscard]] static ColorExtrema GetMinMaxColors(const std::unordered_map<char, int>& color_weights);
 
     [[nodiscard]] std::unique_ptr<Canvas> ExtractRegion(int x1, int y1, int x2, int y2) const;
     void PasteRegion(const Canvas& region, int x, int y);

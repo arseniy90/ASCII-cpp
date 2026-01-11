@@ -1,15 +1,19 @@
 #pragma once
 #include "Plotter.hpp"
-#include <algorithm>
 #include <memory>
 #include <vector>
+#include <unordered_map>
 
 // Для тестирования BrightnessToChar
 void TestGrayscalePlotter();
 
 namespace plotter
 {
-
+struct BrightnessExtrema
+{
+    double min_brightness;
+    double max_brightness;
+};
 class GrayscalePlotter : public Plotter
 {
 public:
@@ -35,7 +39,7 @@ public:
         double center_brightness, double edge_brightness);
 
     [[nodiscard]] double CalculateAverageBrightness();
-    [[nodiscard]] std::pair<double, double> GetMinMaxBrightness();
+    [[nodiscard]] BrightnessExtrema GetMinMaxBrightness();
     [[nodiscard]] std::vector<std::vector<double>> GetBrightnessMatrix() const;
 
     void AdjustBrightness(double factor);
@@ -53,6 +57,8 @@ private:
     // Для тестирования BrightnessToChar
     friend void ::TestGrayscalePlotter();
     std::vector<char> palette_;
+    // Этот словарь часто используется, поэтому решил добавить поле и заполнить его в конструкторе и методе SetPalette
+    std::unordered_map<char, double> char_to_brightness_;
     char BrightnessToChar(double brightness) const;
 
     double GetPixelBrightness(int x, int y) const;
@@ -60,6 +66,8 @@ private:
     std::vector<std::vector<double>> Convolve(const std::vector<std::vector<double>>& kernel) const;
     static std::vector<std::vector<double>> CreateGaussianKernel(int size, double sigma = 1.0);
     static std::vector<std::vector<double>> CreateBoxKernel(int size);
+    // Создает словарь char_to_brightness, используя символы из palette_
+    std::unordered_map<char, double> CreateCharToBrightness();
 };
 
 } // namespace plotter
